@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tomamatics/injector.git"
+    "url": "git+https://github.com/tomamatics/dinkyinject.git"
   },
   "author": "tom pachtner",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/tomamatics/injector/issues"
+    "url": "https://github.com/tomamatics/dinkyinject/issues"
   },
-  "homepage": "https://github.com/tomamatics/injector#readme",
+  "homepage": "https://github.com/tomamatics/dinkyinject#readme",
   "dependencies": {
     "reflect-metadata": "^0.1.13"
   },
