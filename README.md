@@ -7,7 +7,7 @@ A simple and lightweight Dependency Injector
 
 ## Usage
 
-    import { Inject, Injector } from 'dinkyinject';
+    import { Inject, InjectorFactory } from 'dinkyinject';
 
     // first service
     interface IUserRepository {
