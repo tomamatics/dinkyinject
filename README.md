@@ -9,7 +9,7 @@ A simple and lightweight Dependency Injector
 
     import { Inject, Injector } from 'dinkyinject';
 
-    // define a service
+    // first service
     interface IUserRepository {
         loadUser(): any[];
     }
@@ -20,7 +20,7 @@ A simple and lightweight Dependency Injector
         }
     }
 
-    // define another service
+    // second service
     interface IMyService {
         readonly repository: IUserRepository;
     }
@@ -30,13 +30,17 @@ A simple and lightweight Dependency Injector
         public repository: IUserRepository = null;
     }
 
-    // create injector and register services
-    const injector = new Injector([
-        { injectionKey: 'userRepository', instance: () => new MyUserRepository() },
-        { injectionKey: MyService, instance: new MyService() }
-    ]);
+    // create injector factory
+    const factory = new InjectorFactory();
 
-    // retrieve autowired service from injector
+    // register services
+    factory.registerService('userRepository', () => new MyUserRepository())
+    factory.registerService(MyService, new MyService())
+
+    // create injector
+    const injector = factory.createInjector();
+
+    // resolve autowired service
     const service = injector.get<IMyService>(MyService);
 
     // 'Peter', 'Lois', 'Brian', 'Stewie'
