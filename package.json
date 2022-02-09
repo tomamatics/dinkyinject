@@ -4,6 +4,7 @@
   "description": "Simple and lightweight DI implementation",
   "main": "index.js",
   "scripts": {
+    "postinstall": "npm run create-dist-package && npm run rollup",
     "start": "npm run wipe && npm run create-dist-package && npm run rollup-watch",
     "build": "npm run wipe && npm run lint && npm run test && npm run create-dist-package && npm run rollup",
     "wipe": "node tasks/wipe.js",
