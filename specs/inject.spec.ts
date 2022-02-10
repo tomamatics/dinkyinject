@@ -61,11 +61,23 @@ describe('injector', () => {
 
             @Inject()
             public firstService: FirstService = null;
+
+            @Inject()
+            public someString: string = null;
+
+            @Inject()
+            public someNumber: number = null;
+
+            @Inject()
+            public someBoolean: boolean = null;
         }
 
         const injector = new Injector([
             { injectionKey: 'firstService', instance: new FirstService() },
             { injectionKey: 'secondService', instance: () => new SecondService() },
+            { injectionKey: 'someString', instance: 'abc' },
+            { injectionKey: 'someNumber', instance: 123 },
+            { injectionKey: 'someBoolean', instance: true }
         ]);
         const myService = injector.inject(new MyService());
 
@@ -75,6 +87,9 @@ describe('injector', () => {
         expect(myService.secondService).toBe(myService.firstService.second);
         expect(myService.unknownService).toBe(null);
         expect(myService.unknownServiceWithDefault).toBeInstanceOf(FirstService);
+        expect(myService.someString).toBe('abc');
+        expect(myService.someNumber).toBe(123);
+        expect(myService.someBoolean).toBe(true);
     });
 
     it('should inject base class dependencies', () => {

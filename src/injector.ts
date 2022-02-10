@@ -16,16 +16,16 @@ export function getInjectionKey(target: Object, propertyKey: string): InjectionK
 
 export type ServiceFactory<T> = () => T;
 
-export class InjectableService<T extends object>
+export class InjectableService<T>
 {
     constructor(public injectionKey: InjectionKey, public instance: T | ServiceFactory<T>) {
     }
 }
 
 export class InjectorFactory {
-    private _services: InjectableService<object>[] = [];
+    private _services: InjectableService<unknown>[] = [];
 
-    public registerService<T extends object>(injectionKey: string | Function, service: T | ServiceFactory<T>): void {
+    public registerService<T>(injectionKey: string | Function, service: T | ServiceFactory<T>): void {
         const index = this._services.findIndex(d => d.injectionKey === injectionKey);
         if (index >= 0) {
             this._services.splice(index, 1);
@@ -40,13 +40,13 @@ export class InjectorFactory {
 }
 
 export class Injector {
-    constructor(private _services: InjectableService<object>[]) {
+    constructor(private _services: InjectableService<unknown>[]) {
         this._services.push(new InjectableService<Injector>(Injector, this));
         this.resolveInjectableServices();
     }
 
-    public inject<T extends object>(target: T): T {
-        if (target) {
+    public inject<T>(target: T): T {
+        if (this.isObject(target)) {
             Object.keys(target).forEach(propertyKey => {
                 const injectionKey = getInjectionKey(target, propertyKey);
 
@@ -63,7 +63,7 @@ export class Injector {
         return target;
     }
 
-    public get<T extends object>(injectionKey: InjectionKey): T {
+    public get<T>(injectionKey: InjectionKey): T {
         const service = this._services.find(d => d.injectionKey === injectionKey);
 
         if (service) {
@@ -81,5 +81,9 @@ export class Injector {
         this._services.forEach(({ injectionKey }) => {
             this.inject(this.get(injectionKey));
         });
+    }
+
+    private isObject(obj: unknown): boolean {
+        return typeof obj === 'object' && !Array.isArray(obj) && obj !== null;
     }
 }
