@@ -1,17 +1,28 @@
 import 'reflect-metadata';
 
-const injectMetadataKey = Symbol('inject');
+const META_KEY_INJECT = Symbol('inject');
+const META_KEY_POST_INJECT = Symbol('postInject');
 
 export type InjectionKey = string | Function;
 
 export function Inject(injectionKey?: InjectionKey): (target: Object, propertyKey: string) => void {
     return function (target: Object, propertyKey: string): void {
-        Reflect.metadata(injectMetadataKey, injectionKey || propertyKey)(target, propertyKey);
+        Reflect.metadata(META_KEY_INJECT, injectionKey || propertyKey)(target, propertyKey);
+    };
+}
+
+export function PostInject(): (target: Object, propertyKey: string) => void {
+    return function (target: Object, propertyKey: string): void {
+        Reflect.metadata(META_KEY_POST_INJECT, true)(target, propertyKey);
     };
 }
 
 export function getInjectionKey(target: Object, propertyKey: string): InjectionKey {
-    return Reflect.getMetadata(injectMetadataKey, target, propertyKey);
+    return Reflect.getMetadata(META_KEY_INJECT, target, propertyKey);
+}
+
+function isPostInjectMethod(target: Object, propertyKey: string): boolean {
+    return Reflect.hasMetadata(META_KEY_POST_INJECT, target, propertyKey);
 }
 
 export type ServiceFactory<T> = () => T;
@@ -58,6 +69,8 @@ export class Injector {
                     }
                 }
             });
+
+            this.callPostInjectMethods(target);
         }
 
         return target;
@@ -83,7 +96,31 @@ export class Injector {
         });
     }
 
-    private isObject(obj: unknown): boolean {
+    private callPostInjectMethods(target: object) {
+        this.getPostInjectMethods(target).forEach(method => {
+            setTimeout(() => target[method]());
+        });
+    }
+
+    private getPostInjectMethods(target: object) {
+        const properties = new Set<string>();
+        let currentObject = target
+
+        do {
+            Object.getOwnPropertyNames(currentObject).forEach(
+                prop => properties.add(prop)
+            );
+        }
+        while ((currentObject = Object.getPrototypeOf(currentObject)));
+
+        const methods = [...properties.values()]
+            .filter(prop => typeof target[prop] === 'function')
+            .filter(method => isPostInjectMethod(target, method));
+
+        return methods;
+    }
+
+    private isObject(obj: unknown): obj is object {
         return typeof obj === 'object' && !Array.isArray(obj) && obj !== null;
     }
 }

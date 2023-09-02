@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getInjectionKey, Inject, Injector } from '../src/injector';
+import { getInjectionKey, Inject, Injector, PostInject } from '../src/injector';
 
 describe('injectionKey', () => {
     it('should match property name', () => {
@@ -112,5 +113,51 @@ describe('injector', () => {
 
         expect(myService.anotherService).not.toBeNull();
         expect(myService.anotherService).toBeInstanceOf(AnotherService);
+    });
+
+    it('should call postInject methods', () => {
+        class AnotherService {
+            @PostInject()
+            public anotherMethod(): void {
+            }
+        }
+
+        abstract class ServiceBase {
+            @Inject()
+            public anotherService: AnotherService = null;
+
+            @PostInject()
+            public innerMethod(): void {
+            }
+        }
+
+        class MyService extends ServiceBase {
+            @PostInject()
+            public outerMethod(): void {
+            }
+        }
+
+        const myService = new MyService();
+        const anotherService = new AnotherService();
+
+        const innerMethodSpy = jest.spyOn(myService, 'innerMethod');
+        const outerMethodSpy = jest.spyOn(myService, 'outerMethod');
+        const anotherMethodSpy = jest.spyOn(anotherService, 'anotherMethod');
+
+        jest.useFakeTimers();
+
+        const injector = new Injector([
+            { injectionKey: 'anotherService', instance: anotherService }
+        ]);
+
+        jest.runAllTimers();
+        expect(anotherMethodSpy).toHaveBeenCalled();
+
+        injector.inject(myService);
+        
+        jest.runAllTimers();
+        expect(innerMethodSpy).toHaveBeenCalled();
+        expect(outerMethodSpy).toHaveBeenCalled();
+        
     });
 });
